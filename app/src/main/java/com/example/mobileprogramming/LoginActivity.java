@@ -26,7 +26,6 @@ public class LoginActivity extends AppCompatActivity {
                 Intent i = new Intent(getApplicationContext(), FullActivity.class);
                 i.putExtra("id", position);
                 startActivity(i);
-
             }
         });
     }
