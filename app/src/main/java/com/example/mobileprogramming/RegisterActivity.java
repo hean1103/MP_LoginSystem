@@ -3,19 +3,15 @@ package com.example.mobileprogramming;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.telephony.PhoneNumberFormattingTextWatcher;
-import android.telephony.PhoneNumberUtils;
 import android.text.Editable;
 import android.view.View;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -70,46 +66,6 @@ public class RegisterActivity extends AppCompatActivity {
             this.addr = addr;
         }
 
-        public String getUserID() {
-            return userID;
-        }
-//
-//        public String getPassword() {
-//            return password;
-//        }
-//
-//        public String getName() {
-//            return name;
-//        }
-//
-//        public String getPhoneNumber() {
-//            return phoneNumber;
-//        }
-//
-//        public String getAddress() {
-//            return address;
-//        }
-//
-//        public void setUserID(String userID) {
-//            this.userID = userID;
-//        }
-//
-//        public void setPassword(String password) {
-//            this.password = password;
-//        }
-//
-//        public void setName(String name) {
-//            this.name = name;
-//        }
-//
-//        public void setPhoneNumber(String phoneNumber) {
-//            this.phoneNumber = phoneNumber;
-//        }
-//
-//        public void setAddress(String address) {
-//            this.address = address;
-//        }
-
         public String info() {
             return userID + " " + password + " " + name + " " + phone + " " + addr + "\n";
         }
@@ -125,6 +81,7 @@ public class RegisterActivity extends AppCompatActivity {
     EditText password;
     EditText phone;
     boolean idCheck = false;
+    boolean id_avail = false;
     EditText addr;
     EditText name;
 
@@ -200,25 +157,31 @@ public class RegisterActivity extends AppCompatActivity {
                 }
                 //아이디 중복검사
                 try{
-                    BufferedReader br = new BufferedReader(new FileReader(getFilesDir()+"userInfo.txt"));
-                    String str_id = "";
+                    BufferedReader br = new BufferedReader(new FileReader(getFilesDir()+ "userInfo.txt"));
 
-                    while(((str_id = br.readLine()) != null)){
-                        if(str_id.indexOf(tmp_id) != -1){
-                            Toast.makeText(getApplicationContext(),"사용할 수 없는 아이디입니다.", Toast.LENGTH_SHORT).show();
-                        } else {
-                            Toast.makeText(getApplicationContext(),"사용할 수 있는 아이디입니다.", Toast.LENGTH_SHORT).show();
-                        }
+                    String line = null;
+                    while ((line = br.readLine()) != null) {
+                        String lines[] = line.split(" ");
+                        UserInfo user = new UserInfo(lines[0],lines[1], lines[2], lines[3], lines[4]);
+                        userList.add(user);
                     }
                     br.close();
-
-
-                }catch (FileNotFoundException e){
+                    for (UserInfo user : userList) {
+                        if (tmp_id.equals(user.userID)) {
+                            id_avail = true;
+                            break;
+                        }
+                    }
+                } catch (FileNotFoundException e) {
                     e.printStackTrace();
-                    Toast.makeText(getApplicationContext(), "사용할 수 있는 아이디입니다.", Toast.LENGTH_SHORT).show();
-                }catch (IOException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
-                    Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+                if(id_avail){
+                    Toast.makeText(getApplicationContext(),"사용할 수 없는 아이디입니다.", Toast.LENGTH_SHORT).show();
+                    id_avail = false;
+                } else {
+                    Toast.makeText(getApplicationContext(),"사용할 수 있는 아이디입니다.", Toast.LENGTH_SHORT).show();
                 }
             }
         });
