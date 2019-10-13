@@ -13,10 +13,20 @@ import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.Toast;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+
 public class RegisterActivity extends AppCompatActivity {
+
     //비밀번호 유효성 검사(특수문자 , 숫자, 영어 포함 8~16자리)
     boolean check_password(Editable password) {
         String val_symbol = "^(?=.*\\d)(?=.*[#$@!%&*?])[A-Za-z\\d#$@!%&*?]{8,16}$";
@@ -44,24 +54,106 @@ public class RegisterActivity extends AppCompatActivity {
         }
     }
 
+    public class UserInfo{
+
+        private String userID;
+        private String password;
+        private String name;
+        private String phone;
+        private String addr;
+
+        public UserInfo(String userID, String password, String name, String phone, String addr){
+            this.userID = userID;
+            this.password = password;
+            this.name = name;
+            this.phone = phone;
+            this.addr = addr;
+        }
+
+        public String getUserID() {
+            return userID;
+        }
+//
+//        public String getPassword() {
+//            return password;
+//        }
+//
+//        public String getName() {
+//            return name;
+//        }
+//
+//        public String getPhoneNumber() {
+//            return phoneNumber;
+//        }
+//
+//        public String getAddress() {
+//            return address;
+//        }
+//
+//        public void setUserID(String userID) {
+//            this.userID = userID;
+//        }
+//
+//        public void setPassword(String password) {
+//            this.password = password;
+//        }
+//
+//        public void setName(String name) {
+//            this.name = name;
+//        }
+//
+//        public void setPhoneNumber(String phoneNumber) {
+//            this.phoneNumber = phoneNumber;
+//        }
+//
+//        public void setAddress(String address) {
+//            this.address = address;
+//        }
+
+        public String info() {
+            return userID + " " + password + " " + name + " " + phone + " " + addr + "\n";
+        }
+    }
+
+    String tmp_id;
+    String tmp_pwd;
+    String tmp_name;
+    String tmp_phone;
+    String tmp_addr;
+
+    EditText id;
+    EditText password;
+    EditText phone;
+    boolean idCheck = false;
+    EditText addr;
+    EditText name;
+
+    public ArrayList<UserInfo> userList = new ArrayList<>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
 
+        name = (EditText) findViewById(R.id.name);
+        addr = (EditText) findViewById(R.id.addr);
+        phone = (EditText) findViewById(R.id.phone);
+        id  = (EditText) findViewById(R.id.id);
+        password = (EditText) findViewById(R.id.password);
+
+
         Button register = (Button)findViewById(R.id.register);
         register.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                EditText password = (EditText) findViewById(R.id.password);
-                EditText name = (EditText) findViewById(R.id.name);
-                EditText addr = (EditText) findViewById(R.id.addr);
-                EditText phone = (EditText) findViewById(R.id.phone);
+                tmp_id = id.getText().toString();
+                tmp_pwd = password.getText().toString();
+                tmp_name = name.getText().toString();
+                tmp_phone = phone.getText().toString();
+                tmp_addr = addr.getText().toString();
 
-                Editable pwd = password.getText();
                 RadioButton radiobtn = (RadioButton) findViewById(R.id.btn_accept);
 
-                phone.addTextChangedListener(new PhoneNumberFormattingTextWatcher());
 
                 if (name.length() == 0) {
                     Toast.makeText(getApplicationContext(), "이름을 입력해주세요.", Toast.LENGTH_SHORT).show();
@@ -73,11 +165,60 @@ public class RegisterActivity extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(), "개인정사용에 동의해주세요!", Toast.LENGTH_SHORT).show();
                 } else if(!check_phone(phone.getText())) {
                     Toast.makeText(getApplicationContext(), "핸드폰 번호를 확인해주세요.", Toast.LENGTH_SHORT).show();
-                } else if(!check_password(pwd)){
+                } else if(!check_password(password.getText())){
                     Toast.makeText(getApplicationContext(), "비밀번호는 특수문자와 숫자가 포함되어야 합니다.", Toast.LENGTH_SHORT).show();
-                } else if (check_password(pwd) && radiobtn.isChecked() && check_phone(phone.getText())) {
+                } else if(!idCheck) {
+                    Toast.makeText(getApplicationContext(), "아이디 중복 확인을 해주세요.", Toast.LENGTH_SHORT).show();
+                } else if (check_password(password.getText()) && radiobtn.isChecked() && check_phone(phone.getText())) {
+                    //확인이 끝난 후 유저 정보 저장
+                    UserInfo userinfo = new UserInfo(tmp_id,tmp_pwd,tmp_name,tmp_phone,tmp_addr);
+                    userList.add(userinfo);
+                    try{
+                        BufferedWriter bw = new BufferedWriter(new FileWriter(getFilesDir() + "userInfo.txt", true));
+                        bw.write(userinfo.info());
+                        bw.close();
+
+                    }catch (Exception e){
+                        e.printStackTrace();
+                        Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
                     Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                     startActivity(intent);
+                }
+            }
+        });
+
+        Button check = (Button)findViewById(R.id.btn_check);
+        check.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                tmp_id = id.getText().toString();
+                tmp_pwd = password.getText().toString();
+                idCheck = true;
+                if(tmp_id.equals("") == true) {
+                    Toast.makeText(getApplicationContext(),"아이디를 입력해주세요!", Toast.LENGTH_SHORT).show();
+                }
+                //아이디 중복검사
+                try{
+                    BufferedReader br = new BufferedReader(new FileReader(getFilesDir()+"userInfo.txt"));
+                    String str_id = "";
+
+                    while(((str_id = br.readLine()) != null)){
+                        if(str_id.indexOf(tmp_id) != -1){
+                            Toast.makeText(getApplicationContext(),"사용할 수 없는 아이디입니다.", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(getApplicationContext(),"사용할 수 있는 아이디입니다.", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                    br.close();
+
+
+                }catch (FileNotFoundException e){
+                    e.printStackTrace();
+                    Toast.makeText(getApplicationContext(), "사용할 수 있는 아이디입니다.", Toast.LENGTH_SHORT).show();
+                }catch (IOException e) {
+                    e.printStackTrace();
+                    Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             }
         });
