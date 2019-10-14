@@ -80,7 +80,7 @@ public class RegisterActivity extends AppCompatActivity {
     EditText id;
     EditText password;
     EditText phone;
-    boolean idCheck = false;
+    boolean idCheck = true;
     boolean id_avail = false;
     EditText addr;
     EditText name;
@@ -110,6 +110,7 @@ public class RegisterActivity extends AppCompatActivity {
                 tmp_addr = addr.getText().toString();
 
                 RadioButton radiobtn = (RadioButton) findViewById(R.id.btn_accept);
+                RadioButton radiobtn_no = (RadioButton) findViewById(R.id.btn_decline);
 
 
                 if (name.length() == 0) {
@@ -118,8 +119,8 @@ public class RegisterActivity extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(), "주소를 입력해주세요.", Toast.LENGTH_SHORT).show();
                 } else if (phone.length() == 0) {
                     Toast.makeText(getApplicationContext(), "전화번호를 입력해주세요.", Toast.LENGTH_SHORT).show();
-                } else if (!radiobtn.isChecked()) {
-                    Toast.makeText(getApplicationContext(), "개인정사용에 동의해주세요!", Toast.LENGTH_SHORT).show();
+                } else if (!radiobtn.isChecked() || radiobtn_no.isChecked()) {
+                    Toast.makeText(getApplicationContext(), "개인정보사용에 동의해주세요!", Toast.LENGTH_SHORT).show();
                 } else if(!check_phone(phone.getText())) {
                     Toast.makeText(getApplicationContext(), "핸드폰 번호를 확인해주세요.", Toast.LENGTH_SHORT).show();
                 } else if(!check_password(password.getText())){
@@ -139,6 +140,7 @@ public class RegisterActivity extends AppCompatActivity {
                         e.printStackTrace();
                         Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
                     }
+
                     Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                     startActivity(intent);
                 }
@@ -151,7 +153,6 @@ public class RegisterActivity extends AppCompatActivity {
             public void onClick(View v) {
                 tmp_id = id.getText().toString();
                 tmp_pwd = password.getText().toString();
-                idCheck = true;
                 if(tmp_id.equals("") == true) {
                     Toast.makeText(getApplicationContext(),"아이디를 입력해주세요!", Toast.LENGTH_SHORT).show();
                 }
@@ -169,6 +170,7 @@ public class RegisterActivity extends AppCompatActivity {
                     for (UserInfo user : userList) {
                         if (tmp_id.equals(user.userID)) {
                             id_avail = true;
+                            idCheck = false;
                             break;
                         }
                     }
